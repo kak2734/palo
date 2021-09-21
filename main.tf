@@ -1,3 +1,6 @@
+#----------------------------------------------------------
+# Resource Group, VNet, Subnet selection & Random Resources
+#----------------------------------------------------------
 data "azurerm_resource_group" "rg" {
   name = var.resource_group_name
 }
@@ -31,6 +34,7 @@ resource "azurerm_public_ip" "pip_gw" {
   resource_group_name = data.azurerm_resource_group.rg.name
   allocation_method   = var.public_ip_allocation_method
   sku                 = var.public_ip_sku
+  domain_name_label   = format("gw%s%s", lower(replace(var.vpn_gateway_name, "/[[:^alnum:]]/", "")), random_string.str.result)
   tags                = merge({ "ResourceName" = lower("${var.vpn_gateway_name}-${data.azurerm_resource_group.rg.location}-gw-pip") }, var.tags, )
 }
 
@@ -42,6 +46,7 @@ resource "azurerm_public_ip" "pip_aa" {
   resource_group_name = data.azurerm_resource_group.rg.name
   allocation_method   = var.public_ip_allocation_method
   sku                 = var.public_ip_sku
+  domain_name_label   = format("gwaa%s%s", lower(replace(var.vpn_gateway_name, "/[[:^alnum:]]/", "")), random_string.str.result)
   tags                = merge({ "ResourceName" = lower("${var.vpn_gateway_name}-${data.azurerm_resource_group.rg.location}-gw-aa-pip") }, var.tags, )
 }
 
@@ -85,6 +90,9 @@ resource "azurerm_virtual_network_gateway" "vpngw" {
       subnet_id                     = data.azurerm_subnet.snet.id
     }
   }
+
+}
+
 #---------------------------
 # Local Network Gateway
 #---------------------------
